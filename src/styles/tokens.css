@@ -1,0 +1,74 @@
+/* Design tokens from docs/app_theme.md. Do not hard-code these values elsewhere. */
+:root {
+  /* Colour */
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-navigation: #172554;
+  --color-navigation-active: #1e3a8a;
+  --color-navigation-text: #e2e8f0;
+  --color-page: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-border-strong: #64748b;
+  --color-input-bg: #ffffff;
+  --color-focus: #2563eb;
+  --color-success: #166534;
+  --color-success-bg: #f0fdf4;
+  --color-warning: #92400e;
+  --color-warning-bg: #fffbeb;
+  --color-error: #b91c1c;
+  --color-error-bg: #fef2f2;
+  --color-result-bg: #f1f5f9;
+
+  /* Typography */
+  --font-family: 'Segoe UI', Arial, sans-serif;
+  --font-mono: Consolas, 'Courier New', monospace;
+  --text-app-name: 20px;
+  --text-page-title: 26px;
+  --text-section: 18px;
+  --text-card-title: 16px;
+  --text-body: 15px;
+  --text-label: 14px;
+  --text-helper: 13px;
+  --text-result: 32px;
+  --text-supporting: 16px;
+
+  /* Spacing scale (multiples of 4 px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Shape and size */
+  --radius: 8px;
+  --control-height: 44px;
+  --sidebar-width: 240px;
+  --content-max-width: 1200px;
+  --page-padding: 16px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --page-padding: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-padding: 32px;
+  }
+}
+
+@media (max-width: 639px) {
+  :root {
+    --text-page-title: 23px;
+    --text-result: 28px;
+  }
+}
