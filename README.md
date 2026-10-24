@@ -1,100 +1,262 @@
 # Textile Engineering Tools
 
-Free, open-source, local-first textile engineering calculators. Every calculator shows its units, formula and assumptions, and runs entirely in your browser: no account, backend, database or internet connection is needed once the app is built or running locally.
+Open-source textile calculators that show their units, formulas and assumptions. They run in a web browser and need no account, server or internet connection once installed.
 
-Repository: `vipintk2807/textile-engineering-tools`
+## Overview
 
-> **Status:** first implementation of all seven specified calculator groups. See [Verification status](#verification-status) for exactly what has and has not been checked. The calculators are arithmetic tools, **not** validated against factory data and **not** standards-compliance tools.
+Textile Engineering Tools is a small set of calculators for routine work in fabric, dyeing, production and quality. You enter your own values. The tool calculates the result and shows how it got there: the formula, your numbers in the formula, and the assumptions behind it.
 
-## Calculators
+The first regional context is Tiruppur, Tamil Nadu. The calculations are general and are not tied to one factory's practice.
 
-| Group | Tool | What it calculates |
+## The Problem
+
+Textile teams do the same calculations again and again. Many are done on a phone calculator, in a personal spreadsheet, or from memory. Common risks are:
+
+- Mixed units, such as centimetres and metres, yards and metres, or minutes and hours.
+- Unclear assumptions. For example, is a fabric allowance included? Does a 1:8 liquor ratio mean 8 kg of liquor for each kg of fabric?
+- Different meanings for the same term. A chemical amount in percent on weight of fabric (% owf) is not the same as grams per litre.
+- Results that cannot be checked later because nobody recorded the formula that was used.
+
+Typical situations are:
+
+- Finding the GSM of a fabric from a cut sample.
+- Estimating how much fabric an order needs from a marker.
+- Working out how much chemical a dye batch needs.
+- Calculating OEE for a machine for one shift.
+
+This project does not claim how often these errors happen or what they cost.
+
+## The Solution
+
+Each calculator does one defined job and makes its working visible.
+
+- Every input shows its unit.
+- Every result comes with the formula and your values filled into it.
+- Assumptions and limits are written next to the result.
+- Bad input is rejected with a clear message. The tool never guesses.
+- Warnings appear when a result is valid but needs a second look, such as OEE Performance above 100%.
+
+The tools only calculate from your numbers. They do not recommend recipes, chemicals, settings or accept/reject decisions.
+
+## Key Capabilities
+
+| Area | Calculator | What it gives you |
 |---|---|---|
-| Fabric | Fabric GSM Calculator | GSM (g/m²) from sample mass, length and width |
-| Fabric | Fabric Consumption and Marker Efficiency | Fabric per garment, per dozen and per order (optional user-entered allowance); marker efficiency and unused marker area |
-| Dyeing | Dyeing Liquor and Recipe Quantity | Liquor mass and approximate volume from a 1:R ratio; chemical mass from a % owf you enter |
-| Production | Production Capacity | Theoretical output from rate × time, or time ÷ cycle time, plus whole-unit output |
-| Production | Production Efficiency | Actual ÷ expected × 100 (never capped) |
-| OEE | OEE Calculator | Run time, Availability, Performance, Quality, OEE (with warnings and "not available" handling) |
-| Quality | Basic Quality Calculations | Defect percentage; mean; minimum, maximum and range |
+| Fabric | Fabric GSM | GSM (g/m²) from sample mass, length and width |
+| Fabric | Fabric Consumption | Fabric length per garment, per dozen and for an order, from a marker. An allowance is optional and is used only if you enter it. |
+| Fabric | Marker Efficiency | Percentage of the marker area covered by pattern pieces, and the unused area |
+| Dyeing | Liquor Quantity | Liquor mass, and an approximate volume (assumes about 1 kg/L), from the batch mass and a 1:R liquor ratio |
+| Dyeing | Recipe Chemical Quantity | Chemical mass in kg and g from a percentage on weight of fabric (% owf) |
+| Production | Production Capacity | Theoretical output from a rate and time, or from a cycle time and time. Whole complete units are shown separately. |
+| Production | Production Efficiency | Actual output as a percentage of expected output. Values above 100% are shown, not capped. |
+| OEE | OEE Calculator | Run time, Availability, Performance, Quality and OEE |
+| Quality | Defect Percentage | Defective units as a percentage of inspected units |
+| Quality | Measurement Average | Average of two or more measurements |
+| Quality | Minimum, Maximum and Range | Smallest value, largest value and the difference |
 
-Not included (by design): recipe generation, chemical recommendations, accept/reject decisions, SPC, history, accounts, cloud services, copy/export. See `docs/project_explanation.md`.
+Other behaviour:
 
-## Quick start (Windows)
+- Supported units: length in m, cm, yd and in; time in s, min and h. Conversions use exact definitions.
+- Changing any input clears the previous result, so a result on screen always matches the inputs shown.
+- Reset clears only the calculator you are using.
+- Nothing is saved. Reloading the page clears all values.
+- Inputs never leave your browser. The app has no backend and makes no network requests of its own.
 
-Full instructions: [docs/windows_setup.md](docs/windows_setup.md).
+## How It Works
 
-Requirements: Node.js **22.12 or newer** (includes npm) and Git.
+For each calculator the flow is the same: **Input, Process, Output**.
 
-```powershell
-cd "C:\path\to\textile-engineering-tools"
-npm install        # first time only: also creates package-lock.json (see note below)
-npm run dev        # open the URL printed in the terminal
+1. You pick a calculator and type your values.
+2. You select **Calculate**.
+3. The app checks every value. It rejects blanks, text, commas, zero or negative values where they are not allowed, and impossible combinations.
+4. If everything is valid, it calculates and shows the result, the formula, your values in the formula, and any warning.
+
+Example: Fabric GSM
+
+| Input | Value |
+|---|---|
+| Sample mass | 9.6 g |
+| Sample length | 20 cm |
+| Sample width | 20 cm |
+
+The area is 20 × 20 = 400 cm². GSM = 9.6 × 10,000 ÷ 400, so the result is **240.00 g/m²**.
+
+Example: Fabric Consumption
+
+A 6.2 m marker holds 5 garments, and you enter a 3% allowance. Base consumption is 6.2 ÷ 5 = 1.24 m per garment. With the allowance it is 1.2772 m per garment. Both figures are shown separately.
+
+## System Architecture
+
+The application is a static web app. All work happens in the browser.
+
+```mermaid
+flowchart LR
+    A[User enters values] --> B[Screen component]
+    B --> C[Parse and validate text input]
+    C --> D[Calculation function]
+    D --> E[Result or error]
+    E --> F[Format numbers and show result]
 ```
 
-> **Important:** this project was packaged without network access, so `package-lock.json` could not be generated. Run `npm install` once, then commit the generated `package-lock.json`. After that, use `npm ci` for reproducible installs. Details in [docs/windows_setup.md](docs/windows_setup.md).
+The main parts are:
 
-## Scripts
+- **Screens** (`src/calculators/**/*.tsx`). React components that hold the form, call the calculation and display the result.
+- **Calculation functions** (`src/calculators/**/*.ts`). Plain TypeScript with no React. Each returns either a result with optional warnings, or a list of errors. They check their inputs again, even though the screen has already parsed them.
+- **Shared library** (`src/lib`). Input parsing and validation rules, unit conversion, and number formatting.
+- **Shared components** (`src/components`). Cards, input fields, the result panel, formula section and messages.
+- **App shell** (`src/app`). Navigation data and simple hash-based routing, such as `#/fabric/gsm`. This lets the built files work from any static folder or host without special server settings.
+
+## Technology Stack
+
+| Technology | Used for |
+|---|---|
+| TypeScript | Application and calculation code |
+| React 19 | User interface |
+| Vite 7 | Development server and production build |
+| Plain CSS with design tokens | Styling (`src/styles`) |
+| Vitest | Test runner |
+| React Testing Library, user-event, jsdom | Component tests |
+| ESLint and typescript-eslint | Code checks |
+| npm | Dependency management and scripts |
+
+There is no backend, database, authentication, external API or paid service.
+
+## Installation and Setup
+
+### Prerequisites
+
+- Node.js 22.12 or newer (includes npm)
+- Git, if you want to clone or publish the repository
+
+Check your versions:
+
+```bash
+node -v
+npm -v
+```
+
+### Install
+
+From the project folder (the one that contains `package.json`):
+
+```bash
+npm install
+```
+
+If the repository does not yet contain `package-lock.json`, `npm install` creates it. Commit that file. After it is committed, use `npm ci` for repeatable installs.
+
+### Run
+
+```bash
+npm run dev
+```
+
+Open the local address printed in the terminal. Vite usually prints `http://localhost:5173`.
+
+### Available scripts
 
 | Command | Purpose |
 |---|---|
 | `npm run dev` | Start the development server |
-| `npm run build` | Type-check (`tsc -b`) and build static files into `dist/` |
+| `npm run build` | Type-check with `tsc -b`, then build static files into `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run test` | Run tests in watch mode |
-| `npm run test:run` | Run all tests once (use this for verification) |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | TypeScript checks without emitting files |
+| `npm run test:run` | Run all tests once |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | Run TypeScript checks without writing files |
 
-Verification sequence before committing: `npm run lint`, `npm run typecheck`, `npm run test:run`, `npm run build`, then `npm run preview` for a manual look.
+### Configuration
 
-## Project structure
+No environment variables or configuration files need to be edited. The build uses relative asset paths (`base: './'` in `vite.config.ts`).
 
-```
+Step-by-step Windows instructions, including common problems, are in [docs/windows_setup.md](docs/windows_setup.md).
+
+## Usage
+
+1. Open the app and choose a calculator from the sidebar, or from the cards on the Home page. On a small screen, use the Menu button.
+2. Enter values using a decimal point, for example `12.5`. Do not use commas, units or exponents.
+3. Select **Calculate**. Pressing Enter in a field also calculates.
+4. Read the result and open **Formula, units and assumptions** to see how it was calculated.
+5. Use **Reset** to clear that calculator.
+
+Notes for specific tools:
+
+- Liquor ratio: enter only the multiplier. For a 1:8 ratio, type `8`.
+- Allowance and order quantity in Fabric Consumption are optional. Leave them blank if you do not need them.
+- Measurements are entered one per line or separated by spaces. Invalid entries are reported by position. Nothing is skipped.
+- In OEE, choose the time unit first. It applies to both planned time and downtime.
+
+A fuller guide to each calculator is in [docs/user_guide.md](docs/user_guide.md).
+
+## Project Structure
+
+```text
 src/
-  app/            navigation data, hash routing, pages, App
-  components/     shared UI (cards, fields, result panel, formula details, messages)
-  calculators/    fabric/ dyeing/ production/ quality/
-                  each: pure calculation functions (*.ts) + their tests,
-                        and the React screens (*.tsx)
-  lib/            validation, units, formatting (+ tests)
-  styles/         tokens.css, global.css, layout.css, components.css
-  test/           test setup and helpers
-docs/             the six specification documents + guides (below)
+  app/            Navigation data, hash routing, pages, App
+  calculators/    fabric/  dyeing/  production/  quality/
+                  Calculation functions (*.ts) with their tests, and screens (*.tsx)
+  components/     Shared interface components
+  lib/            Validation, units and number formatting
+  styles/         Design tokens and CSS
+  test/           Test setup and helpers
+docs/             Specifications and guides
+public/           Static assets
 ```
 
-Calculation functions are pure TypeScript, independent of React, and return `{ ok, value, warnings }` or `{ ok: false, errors }`. Raw form text is parsed and validated before they are called, and they validate again themselves.
+Documents in `docs/`:
 
-## Documentation
-
-| Document | Content |
+| File | Content |
 |---|---|
-| [docs/master_prompt.md](docs/master_prompt.md) | Development rules and workflow (specification) |
-| [docs/project_explanation.md](docs/project_explanation.md) | Scope, users, exclusions (specification) |
-| [docs/app_workflow.md](docs/app_workflow.md) | Navigation and calculator behaviour (specification) |
-| [docs/app_theme.md](docs/app_theme.md) | Visual design and accessibility (specification) |
-| [docs/technical_specification.md](docs/technical_specification.md) | Stack, architecture, testing (specification) |
-| [docs/textile_calculation_reference.md](docs/textile_calculation_reference.md) | Authoritative formulas and examples (specification) |
-| [docs/windows_setup.md](docs/windows_setup.md) | Install, run, test, build on Windows |
-| [docs/user_guide.md](docs/user_guide.md) | How to use each calculator and read results |
-| [docs/github_publishing.md](docs/github_publishing.md) | Publishing to GitHub (`vipintk2807`) |
-| [docs/implementation_notes.md](docs/implementation_notes.md) | Decisions, spec interpretations, known limitations |
-| [docs/verification_report.md](docs/verification_report.md) | What was actually checked, and what was not |
+| [textile_calculation_reference.md](docs/textile_calculation_reference.md) | The formulas, rules and worked examples the code follows |
+| [project_explanation.md](docs/project_explanation.md) | Scope, users and exclusions |
+| [app_workflow.md](docs/app_workflow.md) | How each screen is meant to behave |
+| [app_theme.md](docs/app_theme.md) | Visual design and accessibility |
+| [technical_specification.md](docs/technical_specification.md) | Stack, architecture and testing rules |
+| [master_prompt.md](docs/master_prompt.md) | Development rules for this project |
+| [user_guide.md](docs/user_guide.md) | How to use each calculator |
+| [windows_setup.md](docs/windows_setup.md) | Windows install, run and test steps |
+| [github_publishing.md](docs/github_publishing.md) | Publishing to GitHub |
+| [implementation_notes.md](docs/implementation_notes.md) | Design decisions and known limitations |
+| [verification_report.md](docs/verification_report.md) | What was checked, and what was not |
 
-The six specification documents are included unchanged.
+## Current Status
 
-## Verification status
+Version 0.1.0. All the calculators in the table above are implemented. The unit tests and component tests are written.
 
-Short version (details in [docs/verification_report.md](docs/verification_report.md)):
+What this means in practice:
 
-- Checked in the packaging environment with substitute tooling: calculation and validation logic (102 unit-level checks, plus a mutation check), strict TypeScript checking of the calculation/library code, a production-mode bundle of the full app, and 130 browser checks in Chromium covering every calculator, validation, stale-result clearing, reset, navigation, keyboard use, narrow layout and absence of external requests.
-- **Not run** (tooling could not be installed offline): `npm ci`/`npm install`, `npm run lint`, `npm run typecheck` on the React files, the Vitest + React Testing Library suite as written, and `npm run build` with Vite. Component tests (`*.ui.test.tsx`, `App.test.tsx`) are written but have never been executed.
-- **Not done:** manual verification on Windows, other browsers, screen-reader testing, and review of formulas by a qualified textile practitioner.
+- The calculation code was checked against the worked examples in `docs/textile_calculation_reference.md`, and against separately calculated values.
+- The generated project was checked with substitute tools in its build environment. The full `npm` toolchain (install, lint, type check, Vitest and React Testing Library tests, Vite build) had not been run there. Run `npm run lint`, `npm run typecheck`, `npm run test:run` and `npm run build` on your machine to confirm. [docs/verification_report.md](docs/verification_report.md) lists exactly what was and was not run.
+- The formulas follow the project's reference document. They have not been reviewed by a textile practitioner or validated against factory data.
+- The GSM calculator is plain arithmetic. It does not implement ASTM D3776/D3776M or IS 1964, and no standards compliance is claimed.
+- Testing so far covered Chromium at desktop and phone widths. Other browsers, screen readers and Windows have not been tested.
+- The project is not deployed anywhere.
 
-## Licence
+Not included by design: ERP or inventory features, user accounts, machine or PLC connections, dye recipe generation, chemical recommendations, colour matching, image-based defect detection, statistical process control, lot-acceptance decisions and costing. See [docs/project_explanation.md](docs/project_explanation.md).
 
-MIT, see [LICENSE](LICENSE). The licence was chosen as a default by the implementer because none was specified; change it before public release if you prefer another open-source licence. All dependencies are standard open-source packages, but their licences have not been individually reviewed in this environment.
+## Roadmap
 
-## Privacy
+These are possible directions. None of them exists yet and none is a commitment.
 
-No telemetry, analytics, remote fonts or remote scripts. Calculator inputs never leave the browser and are not stored.
+- Confirm the full test, lint and build pipeline on Windows and commit the lockfile.
+- Review the formulas and assumptions with textile practitioners.
+- Test in more browsers and with screen readers.
+- Add further tools only when their formulas are documented and tested. The project documents name these areas as candidates: yarn count conversions, fabric shrinkage, further dyeing and finishing calculations, expanded quality statistics, and exportable calculation summaries.
+- Free static hosting, for example GitHub Pages.
+
+## Contributing
+
+Contributions are welcome. Please keep changes small and focused.
+
+1. Fork the repository and create a branch.
+2. Read [docs/technical_specification.md](docs/technical_specification.md) and [docs/textile_calculation_reference.md](docs/textile_calculation_reference.md).
+3. Make your change. Put calculation logic in `src/calculators/**/*.ts`, not in React components.
+4. Add or update tests. If you change a formula or rule, update the reference document in the same change.
+5. Run `npm run lint`, `npm run typecheck`, `npm run test:run` and `npm run build`.
+6. Open a pull request that explains what changed and why.
+
+A new calculator needs a clear use case, a documented formula with its assumptions, input validation rules, and tests. Please do not add network requests, analytics or stored user data without prior discussion.
+
+## License
+
+Released under the MIT License. See [LICENSE](LICENSE).
